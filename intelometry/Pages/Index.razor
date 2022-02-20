@@ -1,11 +1,10 @@
 ﻿@page "/"
 
 @inject DataService dataService
+@inject ElectricityMarketRepository electricityMarketRepository
 @inject IJSRuntime _jsRuntime
 
 <div class="d-flex align-items-start">
-
-
 
 
     @if (dataSheet.sheet != null && dataSheet.sheet.Count > 0)
@@ -31,12 +30,6 @@
             </a>
         </div>}
 
-    <div class="card-material mx-4">
-        <button class="btn btn-warning" @onclick="ShowChart">
-            Display Chart
-        </button>
-    </div>
-
 </div>
 
 <div id="container" style="height: 50vh;"></div>
@@ -60,19 +53,32 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        this.ReadDB();
+
+
+    }
+
+    protected override async Task OnAfterRenderAsync(Boolean firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            @*this.ReadDB();
+
+            await this.ShowChart();*@
+        }
+
     }
 
     private void SuccessFileUpload(Sheet sheet)
     {
         loadingFile = true;
 
-        StateHasChanged();
 
-        int inserted = dataService.InsertData(sheet);
+        List<ElectricityMarket> transformedData = dataService.TransformDataList(sheet.sheet);
+        int inserted = electricityMarketRepository.InsertMany(transformedData);
 
 
-        this.ReadDB();
+        @*this.ReadDB();*@
 
         loadingFile = false;
 
@@ -81,20 +87,18 @@
     private async Task ShowChart()
     {
         await _jsRuntime.InvokeAsync<string>("displayChart", "Hello");
-
-
     }
 
     void ReadDB()
     {
-        dataSheet = dataService.GetList();
+        @*dataSheet = dataService.GetList();
+        StateHasChanged();*@
     }
 
     void DeleteTable()
     {
-        dataService.DeleteAllRows();
-        this.ReadDB();
-
+        @*dataService.DeleteAllRows();
+        this.ReadDB();*@
     }
 
 

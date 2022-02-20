@@ -6,8 +6,15 @@
 
   <ItemGroup>
     <None Remove="System.Data.SqlClient" />
+    <None Remove="DTO\" />
+    <None Remove="Repository\" />
+    <None Remove="DB\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Repositories\" />
+    <Folder Include="DB\" />
   </ItemGroup>
 </Project>

@@ -3,11 +3,16 @@ using intelometry.Models;
 using System.Data.SqlClient;
 using System.Data;
 using System.Collections.Generic;
+//using intelometry.Repositories;
 
 namespace intelometry.Services
 {
     public class DataService
     {
+
+        //ElectricityMarketRepository _electricityMarketRepository;
+
+
         string connectionstring = @"
   Server=127.0.0.1,1433;
   Database=intelometry_test_db;
@@ -22,8 +27,6 @@ namespace intelometry.Services
             {
 
                 SqlConnection dbConnection = new SqlConnection(connectionstring);
-
-
 
                 string query = "INSERT INTO electricity_market_data VALUES(" +
                         "@Pricehub," +
@@ -61,7 +64,9 @@ namespace intelometry.Services
                     cmd.Connection = dbConnection;
                     dbConnection.Open();
 
-                    cmd.ExecuteScalar();
+                   var response= cmd.ExecuteScalar();
+
+
 
                     cmd.Dispose();
 
@@ -147,6 +152,37 @@ namespace intelometry.Services
 
             sheet.sheet = list;
             return sheet;
+        }
+
+        public ElectricityMarket transformData (Datum item)
+        {
+            ElectricityMarket transformedItem = new ElectricityMarket();
+
+            transformedItem.PriceHubName = item.Pricehub;
+            transformedItem.HighpriceMWh = item.HighpriceMWh;
+            transformedItem.LowpriceMWh = item.LowpriceMWh;
+            transformedItem.WtdavgpriceMWh = item.WtdavgpriceMWh;
+            transformedItem.Change = item.Change;
+
+
+            transformedItem.Tradedate = Convert.ToDateTime(item.Tradedate);
+            transformedItem.Deliverystartdate = Convert.ToDateTime(item.Deliverystartdate);
+            transformedItem.Deliveryenddate = Convert.ToDateTime(item.Deliveryenddate);
+
+            return transformedItem;
+        }
+
+        public List<ElectricityMarket> TransformDataList (List<Datum> data)
+        {
+            List<ElectricityMarket> transformedDataList = new List<ElectricityMarket>();
+
+            Array.ForEach(data.ToArray(), (item)=>
+            {
+                ElectricityMarket transformedData = transformData(item);
+                transformedDataList.Add(transformedData);
+            });
+
+            return transformedDataList;
         }
 
     }

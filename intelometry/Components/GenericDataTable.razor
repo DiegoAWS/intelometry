@@ -1,0 +1,85 @@
+﻿@typeparam TItem
+
+
+<div class="table-responsive">
+
+    <table class="table table-hover table-sm">
+        <thead>
+            <tr>
+                @foreach (var member in columns)
+                {
+                    <th scope="col" class="text-center">
+                        @getColumnText(member)
+                    </th>
+                }
+            </tr>
+        </thead>
+
+        @if (items != null && items.Count > 0)
+        {
+            <tbody>
+                @foreach (var item in items)
+                {
+                    <tr>
+                        @foreach (var member in columns)
+                        {
+                            <td class="text-center">
+                                @getCellText(item, member)
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        }
+    </table>
+</div>
+
+
+@code {
+
+    [Parameter] public List<TItem> items { get; set; }
+    [Parameter] public string excludeColumns { get; set; }
+    [Parameter] public Dictionary<string, string> columnNames { get; set; }
+
+
+    MemberInfo[] columns = new MemberInfo[] { };
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (items != null && items.Count > 0)
+        {
+            Type typeOfItem = items[0].GetType();
+            MemberInfo[] memberInfos = typeOfItem.GetMembers();
+
+            columns = Array.FindAll(memberInfos, (member) => member.MemberType == MemberTypes.Property);
+
+
+            if (excludeColumns != null)
+            {
+                columns = Array.FindAll(columns, (member) => !excludeColumns.Contains(member.Name));
+            }
+
+        }
+
+    }
+
+    private String getCellText(TItem item, MemberInfo member)
+    {
+
+        return item.GetType().GetProperty(member.Name).GetValue(item).ToString();
+    }
+
+    private String getColumnText(MemberInfo member)
+    {
+
+        if (columnNames != null && columnNames.ContainsKey(member.Name))
+        {
+            return columnNames[member.Name];
+        }
+
+        return member.Name;
+    }
+
+}

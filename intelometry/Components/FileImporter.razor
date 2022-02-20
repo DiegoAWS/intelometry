@@ -1,0 +1,54 @@
+﻿@inject IJSRuntime _jsRuntime
+
+<label class="btn btn-primary" for="inputFile">
+
+    @fileSelectedName
+
+    @if (Loading)
+    {
+        <div class="spinner-border spinner-border-sm mx-2" role="status">
+        </div>
+    }
+</label>
+
+<input id="inputFile" accept=".xlsx" @ref="fileUpload" class="d-none" type="file" @onchange="SuccessFileUploadInput" />
+
+@code {
+
+    [Parameter] public EventCallback<Sheet> SuccessFileUpload { get; set; }
+    [Parameter] public EventCallback<string> ErrorFileUpload { get; set; }
+    [Parameter] public Boolean Loading { get; set; }
+
+    ElementReference fileUpload;
+
+    string fileSelectedName = "Select XLSX File";
+
+    private async Task SuccessFileUploadInput(ChangeEventArgs e)
+    {
+        if (e.Value != null)
+        {
+
+            fileSelectedName = e.Value.ToString().Split('\\').Last();
+
+            try
+            {
+
+                var resp = await _jsRuntime.InvokeAsync<string>("readFileAsBase64", fileUpload);
+
+
+                Sheet myDeserialized = JsonSerializer.Deserialize<Sheet>(resp);
+
+
+                await SuccessFileUpload.InvokeAsync(myDeserialized);
+
+            }
+            catch (Exception ex)
+            {
+                await ErrorFileUpload.InvokeAsync(ex.Message);
+            }
+
+
+        }
+
+    }
+}

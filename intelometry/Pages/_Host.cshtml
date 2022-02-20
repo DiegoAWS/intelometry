@@ -15,6 +15,10 @@
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link href="css/site.css" rel="stylesheet" />
     <link href="intelometry.styles.css" rel="stylesheet" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/jszip.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.8.0/xlsx.js"></script>
+    <script src="echarts.simple.min.js"></script>
 </head>
 <body>
     <component type="typeof(App)" render-mode="ServerPrerendered" />
@@ -31,5 +35,190 @@
     </div>
 
     <script src="_framework/blazor.server.js"></script>
+
+    <script>const removeNonWordCharsOnKeys = (obj) => {
+
+            const formatedObj = {}
+            Object.keys(obj).forEach((key) => {
+
+                const newKey = key.replace(/[^a-zA-Z]/g, '');
+                const newValue = obj[key]
+
+                formatedObj[newKey] = newValue;
+
+            });
+
+            return formatedObj;
+        }
+
+
+        window.readFileAsBase64 = (fileInput) => {
+            const readAsDataURL = (fileInput) => {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onerror = () => {
+                        reader.abort();
+                        reject(new Error("Error reading file."));
+                    };
+                    reader.addEventListener("load", () => {
+
+                        const data = reader.result
+
+                        if (!data) {
+                            return '';
+                        }
+
+                        const workbook = XLSX.read(data, {
+                            type: 'binary'
+                        });
+
+                        if (!(workbook && workbook.SheetNames && Array.isArray(workbook.SheetNames) && workbook.SheetNames.length > 0)) {
+                            return '';
+                        }
+
+                        const title = workbook.SheetNames[0]
+
+                        const dirty_sheet = XLSX.utils.sheet_to_json(workbook.Sheets[title])
+
+
+                        const sheet = dirty_sheet.map((item) => removeNonWordCharsOnKeys(item))
+
+
+                        const response = {
+                            sheet
+                        }
+
+
+                        console.log(response);
+                        const stringifyResponse = JSON.stringify(response);
+
+                        resolve(stringifyResponse);
+
+
+                    }, false);
+
+                    reader.readAsBinaryString(fileInput.files[0]);
+                });
+            };
+
+            return readAsDataURL(fileInput);
+        };
+
+        window.displayChart = (text) => {
+
+
+
+            var dom = document.getElementById("container");
+            var myChart = echarts.init(dom);
+            var app = {};
+
+            var option;
+
+
+
+            let base = +new Date(1968, 9, 3);
+            let oneDay = 24 * 3600 * 1000;
+            let date = [];
+            let data = [Math.random() * 300];
+            let data1 = [Math.random() * 300];
+            let data2 = [Math.random() * 300];
+            for (let i = 1; i < 20000; i++) {
+                var now = new Date((base += oneDay));
+                date.push([now.getFullYear(), now.getMonth() + 1, now.getDate()].join('/'));
+                data.push(Math.round((Math.random() - 0.5) * 20 + data[i - 1]));
+                data1.push(Math.round((Math.random() - 0.5) * 20 + data1[i - 1]));
+                data2.push(Math.round((Math.random() - 0.5) * 20 + data2[i - 1]));
+            }
+
+
+
+            option = {
+
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: date
+                },
+                yAxis: {
+                    type: 'value',
+                    boundaryGap: [0, '100%']
+                },
+
+                series: [
+                    {
+                        name: 'Fake Data',
+                        type: 'line',
+                        symbol: 'none',
+                        sampling: 'lttb',
+                        itemStyle: {
+                            color: 'rgb(255, 70, 131)'
+                        },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                {
+                                    offset: 0,
+                                    color: 'rgb(255, 158, 68)'
+                                },
+                                {
+                                    offset: 1,
+                                    color: 'rgb(255, 70, 131)'
+                                }
+                            ])
+                        },
+                        data: data
+                    },
+                    {
+                        name: 'Fake Data',
+                        type: 'line',
+                        symbol: 'none',
+                        sampling: 'lttb',
+                        itemStyle: {
+                            color: 'rgb(100, 70, 20)'
+                        },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                {
+                                    offset: 0,
+                                    color: 'rgb(30, 250, 68)'
+                                },
+                                {
+                                    offset: 1,
+                                    color: 'rgb(55, 170, 13)'
+                                }
+                            ])
+                        },
+                        data: data1
+                    },
+                    {
+                        name: 'Fake Data',
+                        type: 'line',
+                        symbol: 'none',
+                        sampling: 'lttb',
+                        itemStyle: {
+                            color: 'rgb(50, 70, 131)'
+                        },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                {
+                                    offset: 0,
+                                    color: 'rgb(125, 18, 168)'
+                                },
+                                {
+                                    offset: 1,
+                                    color: 'rgb(55, 210, 31)'
+                                }
+                            ])
+                        },
+                        data: data2
+                    }
+                ]
+            };
+
+            if (option && typeof option === 'object') {
+                myChart.setOption(option);
+            }
+        }
+
+      </script>
 </body>
 </html>

@@ -1,9 +1,110 @@
 ﻿@page "/"
 
-<h1>Hello, world!</h1>
+@inject DataService dataService
+@inject IJSRuntime _jsRuntime
 
-Welcome to your new app.
+<div class="d-flex align-items-start">
 
-<SurveyPrompt Title="How is Blazor working for you?" />
 
-Very
+
+
+    @if (dataSheet.sheet != null && dataSheet.sheet.Count > 0)
+    {
+
+        <div class="card-material">
+            <button class="btn btn-danger" @onclick="DeleteTable">
+                Delete Data
+            </button>
+
+        </div> }
+    else
+    {
+        <div class="card-material">
+            <FileImporter SuccessFileUpload="SuccessFileUpload" Loading="loadingFile">
+
+            </FileImporter>
+        </div>
+
+        <div class="card-material mx-4">
+            <a class="btn btn-danger" href="https://intelometry.netlify.app/ice_electric-2021final.xlsx">
+                Get Data sample file
+            </a>
+        </div>}
+
+    <div class="card-material mx-4">
+        <button class="btn btn-warning" @onclick="ShowChart">
+            Display Chart
+        </button>
+    </div>
+
+</div>
+
+<div id="container" style="height: 50vh;"></div>
+
+@if (dataSheet.sheet != null && dataSheet.sheet.Count > 0)
+{
+    <div class="card-material mt-5">
+
+        <GenericDataTable items="dataSheet.sheet" columnNames="columnNames"></GenericDataTable>
+
+    </div>}
+
+
+
+
+@code
+{ //
+    Sheet dataSheet = new Sheet();
+    Boolean loadingFile = false;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        this.ReadDB();
+    }
+
+    private void SuccessFileUpload(Sheet sheet)
+    {
+        loadingFile = true;
+
+        StateHasChanged();
+
+        int inserted = dataService.InsertData(sheet);
+
+
+        this.ReadDB();
+
+        loadingFile = false;
+
+    }
+
+    private async Task ShowChart()
+    {
+        await _jsRuntime.InvokeAsync<string>("displayChart", "Hello");
+
+
+    }
+
+    void ReadDB()
+    {
+        dataSheet = dataService.GetList();
+    }
+
+    void DeleteTable()
+    {
+        dataService.DeleteAllRows();
+        this.ReadDB();
+
+    }
+
+
+    public static Dictionary<string, string> columnNames = new Dictionary<string, string>(){
+    {"Pricehub", "Price Hub"},
+    {"Tradedate", "Trade Date"},
+    {"Deliverystartdate", "Delivery start Date"},
+    {"Deliveryenddate", "Delivery end Date"},
+    {"HighpriceMWh", "High price $/MWh"},
+    {"LowpriceMWh", "Low price $/MWh"},
+    {"WtdavgpriceMWh", "Wtd avg price $/MWh"},
+    {"Change", "Change"},
+    {"DailyvolumeMWh", "Daily volumen MWh"},}; }

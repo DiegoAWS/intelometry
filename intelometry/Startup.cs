@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using intelometry.Data;
+using intelometry.Services;
 
 namespace intelometry
 {
@@ -26,9 +27,15 @@ namespace intelometry
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSignalR(hubOptions =>
+            {
+                hubOptions.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
+            });
+
             services.AddRazorPages();
             services.AddServerSideBlazor();
             services.AddSingleton<WeatherForecastService>();
+            services.AddSingleton<DataService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,5 +63,6 @@ namespace intelometry
                 endpoints.MapFallbackToPage("/_Host");
             });
         }
+
     }
 }

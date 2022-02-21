@@ -1,26 +1,28 @@
 ﻿
-using System;
+
 using System.Data;
 using System.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 
-//using System;
-//using intelometry.Models;
-
-//using System.Collections.Generic;
 
 namespace intelometry.DB
 {
-    public static class ConnectionToMSSQL
+    public class ConnectionToMSSQL
     {
-        static string connectionString = @"
-  Server=127.0.0.1,1433;
-  Database=intelometry_test_db;
-  User Id=SA;
-  Password=MyPass@word";
 
-        // Set the connection, command, and then execute the command with query and return the reader.  
-        public static SqlDataReader ExecuteReader (string commandText, params SqlParameter[] parameters)
+        private readonly IConfiguration _configuration;
+
+        public ConnectionToMSSQL(IConfiguration configuration)
         {
+            this._configuration = configuration;
+        }
+
+
+        public  SqlDataReader ExecuteReader (string commandText, params SqlParameter[] parameters)
+        {
+
+            string connectionString = _configuration.GetConnectionString("UserDatabase");
+
             SqlConnection conn = new SqlConnection(connectionString);
 
             using (SqlCommand cmd = new SqlCommand(commandText, conn))
@@ -36,8 +38,10 @@ namespace intelometry.DB
             }
         }
 
-        public static int ExecuteNonQuery( string commandText, params SqlParameter[] parameters)
+        public  int ExecuteNonQuery( string commandText, params SqlParameter[] parameters)
         {
+            string connectionString = _configuration.GetConnectionString("UserDatabase");
+
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 using (SqlCommand cmd = new SqlCommand(commandText, conn))

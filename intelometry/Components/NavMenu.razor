@@ -14,17 +14,7 @@
 
 <div class="@( collapseNavMenu ? "collapse" : null)">
     <ul class="nav flex-column">
-        <li class="nav-item px-3" @onclick="ToggleNavMenu">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </li>
-        <li class="nav-item px-3" @onclick="ToggleNavMenu">
-            <NavLink class="nav-link" href="charts">
-                <span class="oi oi-plus" aria-hidden="true"></span> Charts
-            </NavLink>
-        </li>
-
+     
         <li class=" px-3">
 
 
@@ -34,6 +24,7 @@
                     <div class="d-flex flex-wrap align-items-start">
 
                         <button class="m-2 mb-4 btn btn-danger show-on-movil w-100" @onclick="DeleteTable">
+                            <span class="oi oi-trash mr-2"></span>
                             Delete Data
                         </button>
 

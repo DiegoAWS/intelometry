@@ -1,6 +1,24 @@
 ﻿@inherits LayoutComponentBase
 @inject DataService dataService
 
+@if (firstLoading)
+{
+    <div class="d-flex justify-content-center align-items-center w-100 h-100">
+
+        @if (errorLoading == "")
+        {
+<img src="img/loading.gif" class=""/>
+        }
+                else
+                {
+                    <div class="card-material w-25">
+                        @errorLoading
+                    </div>
+                }
+    </div>
+}
+else
+{
 <div class="page">
     <CascadingValue Name="electricityMarkets" Value="@electricityMarkets">
         <CascadingValue Name="dbFilled" Value="dbFilled">
@@ -17,16 +35,14 @@
                     <div class="">
                         @if (dbFilled)
                         {
-                            <button class="m-2 btn btn-danger " @onclick="DeleteTable">
-                                Delete Data
-                            </button>
-                        }
+    <button class="m-2 btn btn-danger " @onclick="DeleteTable">
+        <span class="oi oi-trash mr-2"></span>
+        Delete Data
+    </button> }
                         else
                         {
 
-                            <FileImporter SuccessFileUpload="SuccessFileUpload" Loading="@loadingFile" />
-
-                        }
+    <FileImporter SuccessFileUpload="SuccessFileUpload" Loading="@loadingFile" />}
                     </div>
                 </div>
 
@@ -36,22 +52,37 @@
             </div>
         </CascadingValue>
     </CascadingValue>
-</div>
+</div>}
 
-@code{
-    List<ElectricityMarket> electricityMarkets = new List<ElectricityMarket>();
+@code{ List<ElectricityMarket> electricityMarkets = new List<ElectricityMarket>();
     List<PriceHub> priceHubs = new List<PriceHub>();
 
     bool dbFilled = false;
 
     Boolean loadingFile = false;
 
+    Boolean firstLoading = true;
+
+    string errorLoading = "";
+
     protected override async Task OnAfterRenderAsync(Boolean firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
         if (firstRender)
         {
-            ReadDB();
+            try
+            {
+                ReadDB();
+                firstLoading = false;
+
+            }
+            catch (Exception ex)
+            {
+                errorLoading = ex.Message;
+                Console.WriteLine(ex.Message);
+
+            }
+            StateHasChanged();
         }
 
     }
@@ -84,5 +115,4 @@
         dataService.StoreNewData(sheet.sheet);
         ReadDB();
         loadingFile = false;
-    }
-}
+    } }

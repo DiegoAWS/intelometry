@@ -1,12 +1,11 @@
 ﻿using Microsoft.AspNetCore.Builder;
-
 using Microsoft.AspNetCore.Hosting;
-
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using intelometry.Services;
 using intelometry.Repositories;
+using intelometry.DB;
 
 namespace intelometry
 {
@@ -30,6 +29,7 @@ namespace intelometry
 
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddSingleton<ConnectionToMSSQL>();
             services.AddSingleton<DataService>();
             services.AddSingleton<PriceHubRepository>();
             services.AddSingleton<ElectricityMarketRepository>();

@@ -10,11 +10,12 @@ namespace intelometry.Repositories
     public class ElectricityMarketRepository
     {
         PriceHubRepository _priceHubRepository;
+        ConnectionToMSSQL _connectionToMSSQL;
 
-
-        public ElectricityMarketRepository(PriceHubRepository priceHubRepository)
+        public ElectricityMarketRepository(PriceHubRepository priceHubRepository, ConnectionToMSSQL connectionToMSSQL)
         {
             _priceHubRepository = priceHubRepository;
+            _connectionToMSSQL = connectionToMSSQL;
         }
 
         static string WriteFilters(List<Filter> filters, bool operatorOr = false)
@@ -85,9 +86,9 @@ namespace intelometry.Repositories
                 }
             }
 
-            query += " ORDER BY Tradedate";
+            query += " ORDER BY Deliverystartdate";
 
-            using (SqlDataReader reader = ConnectionToMSSQL.ExecuteReader(query))
+            using (SqlDataReader reader = _connectionToMSSQL.ExecuteReader(query))
             {
 
                 while (reader.Read())
@@ -152,7 +153,7 @@ namespace intelometry.Repositories
                 parameters.Add(new SqlParameter("@DailyvolumeMWh", item.DailyvolumeMWh));
 
 
-                int rowAffected = ConnectionToMSSQL.ExecuteNonQuery(query, parameters.ToArray());
+                int rowAffected = _connectionToMSSQL.ExecuteNonQuery(query, parameters.ToArray());
 
 
                 insertedRows += rowAffected;
@@ -166,7 +167,7 @@ namespace intelometry.Repositories
             string query = "DELETE FROM electricity_market_table"; // Very nice statement :)
 
 
-            return ConnectionToMSSQL.ExecuteNonQuery(query);
+            return _connectionToMSSQL.ExecuteNonQuery(query);
         }
     }
 }

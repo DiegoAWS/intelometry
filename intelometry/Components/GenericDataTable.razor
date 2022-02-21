@@ -10,7 +10,7 @@
             <tr>
                 @foreach (var member in columns)
                 {
-                    <th scope="col" class="@(member == columns[0] ? "":"text-center")">
+                    <th scope="col" class="no-wrap-text  @(member == columns[0] ? "":"text-center")">
                         @getColumnText(member)
                     </th>
                 }
@@ -25,7 +25,7 @@
                     <tr>
                         @foreach (var member in columns)
                         {
-                            <td class="@(member == columns[0] ? "":"text-center")">
+                            <td class="no-wrap-text @(member == columns[0] ? "":"text-center" )">
                                 @getCellText(item, member)
                             </td>
                         }

@@ -8,6 +8,12 @@ namespace intelometry.Repositories
 {
     public class PriceHubRepository
     {
+        ConnectionToMSSQL _connectionToMSSQL;
+
+        public PriceHubRepository(ConnectionToMSSQL connectionToMSSQL)
+        {
+            _connectionToMSSQL = connectionToMSSQL;
+        }
 
         public List<PriceHub> ListAll()
         {
@@ -15,7 +21,7 @@ namespace intelometry.Repositories
 
             string query = "SELECT * FROM price_hub_table";
 
-            using (SqlDataReader reader = ConnectionToMSSQL.ExecuteReader(query))
+            using (SqlDataReader reader = _connectionToMSSQL.ExecuteReader(query))
             {
 
                 while (reader.Read())
@@ -40,7 +46,7 @@ namespace intelometry.Repositories
 
             SqlParameter nameParameter = new SqlParameter("@name", name);
 
-            using (SqlDataReader reader = ConnectionToMSSQL.ExecuteReader(query, nameParameter))
+            using (SqlDataReader reader = _connectionToMSSQL.ExecuteReader(query, nameParameter))
             {
                 var data = reader.Read();
 
@@ -60,7 +66,7 @@ namespace intelometry.Repositories
 
             SqlParameter nameParameter = new SqlParameter("@PriceHubName", priceHubName);
 
-            return ConnectionToMSSQL.ExecuteNonQuery(query, nameParameter);
+            return _connectionToMSSQL.ExecuteNonQuery(query, nameParameter);
         }
 
         public int DeleteAll()
@@ -68,7 +74,7 @@ namespace intelometry.Repositories
             string query = "DELETE FROM price_hub_table"; // Very nice statement :)
 
 
-            return ConnectionToMSSQL.ExecuteNonQuery(query);
+            return _connectionToMSSQL.ExecuteNonQuery(query);
         }
 
 

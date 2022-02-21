@@ -2,13 +2,13 @@
 
 <label class="btn btn-primary w-100" for="inputFile">
 
+    <span class="oi oi-cloud-upload mr-2"></span>
     @fileSelectedName
 
     @if (Loading)
     {
-        <div class="spinner-border spinner-border-sm mx-2" role="status">
-        </div>
-    }
+<div class="spinner-border spinner-border-sm mx-2" role="status">
+</div>}
 </label>
 
 <input id="inputFile" accept=".xlsx" @ref="fileUpload" class="d-none" type="file" @onchange="SuccessFileUploadInput" />

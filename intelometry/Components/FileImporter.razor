@@ -11,7 +11,7 @@
 </div>}
 </label>
 
-<input id="inputFile" accept=".xlsx" @ref="fileUpload" class="d-none" type="file" @onchange="SuccessFileUploadInput" />
+<input id="inputFile" disabled="@Loading" accept=".xlsx" @ref="fileUpload" class="d-none" type="file" @onchange="SuccessFileUploadInput" />
 
 @code {
 

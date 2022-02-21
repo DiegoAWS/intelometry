@@ -43,7 +43,7 @@
 }
 
 .rounded-all{
-    border-radius: 50px;
+    border-radius: 50px !important;
 }
 
 @media (max-width: 640.98px) {

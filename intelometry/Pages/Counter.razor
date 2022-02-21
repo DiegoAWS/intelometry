@@ -12,13 +12,7 @@
 
     private void IncrementCount()
     {
-        PriceHub response = priceHubRepository.Insert("Pepe");
-
-        Console.WriteLine(response.PriceHubName+" "+response.PriceHub_id);
-
-        List<PriceHub> respMany = priceHubRepository.ListAll();
-
-        Console.WriteLine(respMany.Count);
+        currentCount++;
     }
 
 

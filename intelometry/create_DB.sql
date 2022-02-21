@@ -10,10 +10,10 @@ USE intelometry_test_db
 
 CREATE TABLE price_hub_table
 (
-    PriceHub_id INT IDENTITY (1, 1),
+    id INT IDENTITY (1, 1),
     PriceHubName VARCHAR (255) NOT NULL,
     
-    PRIMARY KEY (PriceHub_id)
+    PRIMARY KEY (id)
 )
 GO
 
@@ -31,7 +31,7 @@ CREATE TABLE electricity_market_table
     DailyvolumeMWh VARCHAR (255) NOT NULL,
 
     FOREIGN KEY(PriceHub_id) 
-     REFERENCES price_hub_table(PriceHub_id)
+     REFERENCES price_hub_table(id)
      ON DELETE CASCADE
      ON UPDATE CASCADE,
     PRIMARY KEY(id),

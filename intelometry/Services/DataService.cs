@@ -3,158 +3,51 @@ using intelometry.Models;
 using System.Data.SqlClient;
 using System.Data;
 using System.Collections.Generic;
-//using intelometry.Repositories;
+using intelometry.Repositories;
 
 namespace intelometry.Services
 {
     public class DataService
     {
 
-        //ElectricityMarketRepository _electricityMarketRepository;
+        ElectricityMarketRepository _electricityMarketRepository;
+        PriceHubRepository _priceHubRepository;
 
-
-        string connectionstring = @"
-  Server=127.0.0.1,1433;
-  Database=intelometry_test_db;
-  User Id=SA;
-  Password=MyPass@word";
-
-        public int InsertData(Sheet sheet)
+        public DataService(ElectricityMarketRepository electricityMarketRepository, PriceHubRepository priceHubRepository)
         {
-            int insertedRecords = 0;
-
-            try
-            {
-
-                SqlConnection dbConnection = new SqlConnection(connectionstring);
-
-                string query = "INSERT INTO electricity_market_data VALUES(" +
-                        "@Pricehub," +
-                        "@Tradedate," +
-                        "@Deliverystartdate," +
-                        "@Deliveryenddate," +
-                        "@HighpriceMWh," +
-                        "@LowpriceMWh," +
-                        "@WtdavgpriceMWh," +
-                        "@Change," +
-                        "@DailyvolumeMWh" +
-                        ")";
-
-                //string constr = ConfigurationManager.ConnectionStrings["constr"].ConnectionString;
-
-
-
-                foreach (Datum item in sheet.sheet)
-                {
-                    SqlCommand cmd = new SqlCommand(query);
-
-
-
-                    cmd.Parameters.AddWithValue("@Pricehub", item.Pricehub);
-                    cmd.Parameters.AddWithValue("@Tradedate", item.Tradedate);
-                    cmd.Parameters.AddWithValue("@Deliverystartdate", item.Deliverystartdate);
-                    cmd.Parameters.AddWithValue("@Deliveryenddate", item.Deliveryenddate);
-                    cmd.Parameters.AddWithValue("@HighpriceMWh", item.HighpriceMWh);
-                    cmd.Parameters.AddWithValue("@LowpriceMWh", item.LowpriceMWh);
-                    cmd.Parameters.AddWithValue("@WtdavgpriceMWh", item.WtdavgpriceMWh);
-                    cmd.Parameters.AddWithValue("@Change", item.Change);
-                    cmd.Parameters.AddWithValue("@DailyvolumeMWh", item.DailyvolumeMWh);
-
-
-                    cmd.Connection = dbConnection;
-                    dbConnection.Open();
-
-                   var response= cmd.ExecuteScalar();
-
-
-
-                    cmd.Dispose();
-
-
-                    dbConnection.Close();
-                    insertedRecords++;
-                }
-
-
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("SqlError: " + ex.Message);
-
-                return 0;
-
-            }
-
-            return insertedRecords;
-
+            _electricityMarketRepository = electricityMarketRepository;
+            _priceHubRepository = priceHubRepository;
         }
 
-        public void DeleteAllRows()
+        public void StoreNewData(List<Datum> sheet)
         {
-            SqlConnection dbConnection = new SqlConnection(connectionstring);
+            List<ElectricityMarket> transformedData = TransformDataList(sheet);
 
-            string query = "TRUNCATE TABLE electricity_market_data";
-
-            SqlCommand cmd = new SqlCommand(query);
-            cmd.Connection = dbConnection;
-            dbConnection.Open();
-            cmd.ExecuteScalar();
-            cmd.Dispose();
-            dbConnection.Close();
-
+             _electricityMarketRepository.InsertMany(transformedData);
         }
 
-        public Sheet GetList()
+        public List<ElectricityMarket> ListAllData()
         {
+            return _electricityMarketRepository.ListAll();
+        }
 
-            List<Datum> list = new List<Datum>();
-            SqlConnection dbConnection = new SqlConnection(connectionstring);
+        public List<PriceHub> ListAllPriceHubs()
+        {
+            return _priceHubRepository.ListAll();
+        }
 
-            string query = "SELECT * FROM electricity_market_data";
-
-            SqlCommand cmd = new SqlCommand(query);
-
-            cmd.CommandType = CommandType.Text;
-            cmd.Connection = dbConnection;
-            dbConnection.Open();
-
-            using (SqlDataReader sdr = cmd.ExecuteReader())
+        public List<ElectricityMarket> ListOnePriceHubs(int priceHub_id)
+        {
+            if(priceHub_id == -1)
             {
-
-                while (sdr.Read())
-                {
-                    Datum item = new Datum();
-
-                    item.Pricehub = Convert.ToString(sdr["Pricehub"]);
-                    item.Tradedate = Convert.ToString(sdr["Tradedate"]);
-                    item.Deliverystartdate = Convert.ToString(sdr["Deliverystartdate"]);
-                    item.Deliveryenddate = Convert.ToString(sdr["Deliveryenddate"]);
-                    item.HighpriceMWh = Convert.ToString(sdr["HighpriceMWh"]);
-                    item.LowpriceMWh = Convert.ToString(sdr["LowpriceMWh"]);
-                    item.Change = Convert.ToString(sdr["Change"]);
-                    item.WtdavgpriceMWh = Convert.ToString(sdr["WtdavgpriceMWh"]);
-                    item.DailyvolumeMWh = Convert.ToString(sdr["DailyvolumeMWh"]);
-
-                    list.Add(item);
-
-
-                }
+                return _electricityMarketRepository.ListAll();
             }
 
-
-
-
-            cmd.Dispose();
-
-
-            dbConnection.Close();
-            Sheet sheet = new Sheet();
-
-            sheet.sheet = list;
-            return sheet;
+            Filter filter = new Filter("PriceHub_id", "=", priceHub_id.ToString());
+            return _electricityMarketRepository.ListAll(filter);
         }
 
-        public ElectricityMarket transformData (Datum item)
+        public ElectricityMarket transformData(Datum item)
         {
             ElectricityMarket transformedItem = new ElectricityMarket();
 
@@ -163,6 +56,7 @@ namespace intelometry.Services
             transformedItem.LowpriceMWh = item.LowpriceMWh;
             transformedItem.WtdavgpriceMWh = item.WtdavgpriceMWh;
             transformedItem.Change = item.Change;
+            transformedItem.DailyvolumeMWh = item.DailyvolumeMWh;
 
 
             transformedItem.Tradedate = Convert.ToDateTime(item.Tradedate);
@@ -172,11 +66,11 @@ namespace intelometry.Services
             return transformedItem;
         }
 
-        public List<ElectricityMarket> TransformDataList (List<Datum> data)
+        public List<ElectricityMarket> TransformDataList(List<Datum> data)
         {
             List<ElectricityMarket> transformedDataList = new List<ElectricityMarket>();
 
-            Array.ForEach(data.ToArray(), (item)=>
+            Array.ForEach(data.ToArray(), (item) =>
             {
                 ElectricityMarket transformedData = transformData(item);
                 transformedDataList.Add(transformedData);
@@ -185,6 +79,15 @@ namespace intelometry.Services
             return transformedDataList;
         }
 
+
+        public int DeleteAllTheData()
+        {
+
+            int deletedElectricityData = _electricityMarketRepository.DeleteAll();
+            int deletedPriceHub = _priceHubRepository.DeleteAll();
+
+            return deletedElectricityData + deletedPriceHub;
+        }
     }
 
 }

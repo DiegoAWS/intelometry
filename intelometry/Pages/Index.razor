@@ -1,44 +1,19 @@
 ﻿@page "/"
 
-@inject DataService dataService
-@inject ElectricityMarketRepository electricityMarketRepository
 @inject IJSRuntime _jsRuntime
 
 <div class="d-flex align-items-start">
 
 
-    @if (dataSheet.sheet != null && dataSheet.sheet.Count > 0)
-    {
-
-        <div class="card-material">
-            <button class="btn btn-danger" @onclick="DeleteTable">
-                Delete Data
-            </button>
-
-        </div> }
-    else
-    {
-        <div class="card-material">
-            <FileImporter SuccessFileUpload="SuccessFileUpload" Loading="loadingFile">
-
-            </FileImporter>
-        </div>
-
-        <div class="card-material mx-4">
-            <a class="btn btn-danger" href="https://intelometry.netlify.app/ice_electric-2021final.xlsx">
-                Get Data sample file
-            </a>
-        </div>}
-
 </div>
 
-<div id="container" style="height: 50vh;"></div>
+<div id="container"></div>
 
-@if (dataSheet.sheet != null && dataSheet.sheet.Count > 0)
+@if (electricityMarkets != null && electricityMarkets.Count > 0)
 {
     <div class="card-material mt-5">
 
-        <GenericDataTable items="dataSheet.sheet" columnNames="columnNames"></GenericDataTable>
+        <GenericDataTable items="electricityMarkets" columnNames="columnNames"></GenericDataTable>
 
     </div>}
 
@@ -46,59 +21,13 @@
 
 
 @code
-{ //
-    Sheet dataSheet = new Sheet();
-    Boolean loadingFile = false;
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-
-
-    }
-
-    protected override async Task OnAfterRenderAsync(Boolean firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-        if (firstRender)
-        {
-            @*this.ReadDB();
-
-            await this.ShowChart();*@
-        }
-
-    }
-
-    private void SuccessFileUpload(Sheet sheet)
-    {
-        loadingFile = true;
-
-
-        List<ElectricityMarket> transformedData = dataService.TransformDataList(sheet.sheet);
-        int inserted = electricityMarketRepository.InsertMany(transformedData);
-
-
-        @*this.ReadDB();*@
-
-        loadingFile = false;
-
-    }
+{
+    [CascadingParameter(Name = "electricityMarkets")]
+    List<ElectricityMarket> electricityMarkets { get; set; }
 
     private async Task ShowChart()
     {
         await _jsRuntime.InvokeAsync<string>("displayChart", "Hello");
-    }
-
-    void ReadDB()
-    {
-        @*dataSheet = dataService.GetList();
-        StateHasChanged();*@
-    }
-
-    void DeleteTable()
-    {
-        @*dataService.DeleteAllRows();
-        this.ReadDB();*@
     }
 
 
@@ -111,4 +40,4 @@
     {"LowpriceMWh", "Low price $/MWh"},
     {"WtdavgpriceMWh", "Wtd avg price $/MWh"},
     {"Change", "Change"},
-    {"DailyvolumeMWh", "Daily volumen MWh"},}; }
+    {"DailyvolumeMWh", "Daily volumen MWh"},};}

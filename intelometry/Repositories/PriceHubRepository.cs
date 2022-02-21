@@ -22,7 +22,7 @@ namespace intelometry.Repositories
                 {
                     PriceHub item = new PriceHub();
 
-                    item.PriceHub_id = Convert.ToInt32(reader["PriceHub_id"]);
+                    item.id = Convert.ToInt32(reader["id"]);
                     item.PriceHubName = Convert.ToString(reader["PriceHubName"]);
 
                     response.Add(item);
@@ -46,7 +46,7 @@ namespace intelometry.Repositories
 
                 if (data)
                 {
-                    response.PriceHub_id = Convert.ToInt32(reader["PriceHub_id"]);
+                    response.id = Convert.ToInt32(reader["id"]);
                     response.PriceHubName = Convert.ToString(reader["PriceHubName"]);
                 }
             }
@@ -54,26 +54,21 @@ namespace intelometry.Repositories
             return response;
         }
 
-        public PriceHub Insert(string priceHubName)
+        public int Insert(string priceHubName)
         {
-            PriceHub response = new PriceHub();
-
             string query = "INSERT INTO price_hub_table VALUES(@PriceHubName)";
 
             SqlParameter nameParameter = new SqlParameter("@PriceHubName", priceHubName);
 
-            using (SqlDataReader reader = ConnectionToMSSQL.ExecuteReader(query, nameParameter))
-            {
-                var data = reader.Read();
+            return ConnectionToMSSQL.ExecuteNonQuery(query, nameParameter);
+        }
 
-                if (data)
-                {
-                    response.PriceHub_id = Convert.ToInt32(reader["PriceHub_id"]);
-                    response.PriceHubName = Convert.ToString(reader["PriceHubName"]);
-                }
-            }
+        public int DeleteAll()
+        {
+            string query = "DELETE FROM price_hub_table"; // Very nice statement :)
 
-            return response;
+
+            return ConnectionToMSSQL.ExecuteNonQuery(query);
         }
 
 
@@ -82,14 +77,15 @@ namespace intelometry.Repositories
 
             PriceHub find = FindOneByName(priceHubName);
 
-            if(find.PriceHub_id == -1)
+            if (find.id == -1)
             {
-                PriceHub created = Insert(priceHubName);
+                Insert(priceHubName);
 
-                return created.PriceHub_id;
+
+                return FindOneByName(priceHubName).id;
             }
 
-            return find.PriceHub_id;
+            return find.id;
         }
     }
 }

@@ -1,5 +1,11 @@
-﻿<div class="top-row pl-4 navbar navbar-dark">
-    <a class="navbar-brand" href="">intelometry</a>
+﻿
+@inject DataService dataService
+@inject ElectricityMarketRepository electricityMarketRepository
+@inject IJSRuntime _jsRuntime
+
+
+<div class="top-row pl-4 navbar navbar-dark logoContainer">
+    <img class="logo" src="img/intelometryLogo.png" alt="Intelomery logo" />
     <button class="navbar-toggler" @onclick="ToggleNavMenu">
         <span class="navbar-toggler-icon"></span>
     </button>
@@ -22,10 +28,59 @@
                 <span class="oi oi-list-rich" aria-hidden="true"></span> Fetch data
             </NavLink>
         </li>
+        <li class=" px-3">
+
+            <div class="card-material my-3">
+                @if (electricityMarkets != null && electricityMarkets.Count > 0)
+                {
+                <div class="d-flex flex-wrap">
+
+                    <button class="m-2 btn btn-danger" @onclick="DeleteTable">
+                        Delete Data
+                    </button>
+
+                    <select class="custom-select" value="@selectedPriceHub" @onchange="ChangeSelectedPriceHub">
+                        <option value="-1">ALL</option>
+                        @foreach (var priceHub in priceHubs)
+                        {
+                            <option value="@priceHub.id">@priceHub.PriceHubName</option>
+                        }
+
+                    </select>
+
+                </div>
+                  
+                }
+                else
+                {
+
+                    <FileImporter SuccessFileUpload="SuccessFileUpload" Loading="loadingFile">
+                    </FileImporter>
+
+                    <a class="btn btn-danger mt-4" href="https://intelometry.netlify.app/ice_electric-2021final.xlsx">
+                        Get Data sample file
+                    </a>
+                }
+
+            </div>
+        </li>
+
+
     </ul>
 </div>
 
 @code {
+    [CascadingParameter(Name = "electricityMarkets")]
+    List<ElectricityMarket> electricityMarkets { get; set; }
+    List<PriceHub> priceHubs = new List<PriceHub>();
+
+    int selectedPriceHub = -1;
+
+    Boolean loadingFile = false;
+
+    [Parameter] public Action<List<ElectricityMarket>> OnNewDataAvailable { get; set; }
+
+
     private bool collapseNavMenu = true;
 
     private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
@@ -34,4 +89,59 @@
     {
         collapseNavMenu = !collapseNavMenu;
     }
+
+
+    private void SetElectricityMarkets(List<ElectricityMarket> newData)
+    {
+        OnNewDataAvailable?.Invoke(newData);
+    }
+
+
+    protected override async Task OnAfterRenderAsync(Boolean firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            this.ReadDB();
+        }
+
+    }
+
+    private void SuccessFileUpload(Sheet sheet)
+    {
+        loadingFile = true;
+
+        dataService.StoreNewData(sheet.sheet);
+
+        this.ReadDB();
+
+        loadingFile = false;
+    }
+
+
+
+    void ReadDB()
+    {
+        SetElectricityMarkets(dataService.ListAllData());
+
+        priceHubs = dataService.ListAllPriceHubs();
+        StateHasChanged();
+    }
+
+    void DeleteTable()
+    {
+        dataService.DeleteAllTheData();
+        ReadDB();
+    }
+
+    void ChangeSelectedPriceHub(ChangeEventArgs e)
+    {
+        int newValue = Convert.ToInt32(e.Value);
+
+        selectedPriceHub = newValue;
+
+        SetElectricityMarkets(dataService.ListOnePriceHubs(newValue));
+
+    }
+
 }

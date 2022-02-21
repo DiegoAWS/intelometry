@@ -8,7 +8,7 @@
             <tr>
                 @foreach (var member in columns)
                 {
-                    <th scope="col" class="text-center">
+                    <th scope="col" class="@(member == columns[0] ? "":"text-center")">
                         @getColumnText(member)
                     </th>
                 }
@@ -23,7 +23,7 @@
                     <tr>
                         @foreach (var member in columns)
                         {
-                            <td class="text-center">
+                            <td class="@(member == columns[0] ? "":"text-center")">
                                 @getCellText(item, member)
                             </td>
                         }
@@ -67,8 +67,15 @@
 
     private String getCellText(TItem item, MemberInfo member)
     {
+        var value = item.GetType().GetProperty(member.Name).GetValue(item);
 
-        return item.GetType().GetProperty(member.Name).GetValue(item).ToString();
+        if( value.GetType().Name == "DateTime")
+        {
+          
+           return  Convert.ToDateTime(value).ToString("MM/dd/yyyy");
+        }
+
+        return value.ToString();
     }
 
     private String getColumnText(MemberInfo member)

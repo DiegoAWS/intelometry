@@ -17,4 +17,7 @@
     <Folder Include="Repositories\" />
     <Folder Include="DB\" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Remove="wwwroot\favicon.ico" />
+  </ItemGroup>
 </Project>

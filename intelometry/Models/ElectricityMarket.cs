@@ -11,6 +11,6 @@ namespace intelometry.Models
         public string LowpriceMWh { get; set; }
         public string WtdavgpriceMWh { get; set; }
         public string Change { get; set; }
-        public string DailyvolumeMWh { get; set; }
+        public string DailyvolumeMWh { get; set; } //
     }
 }

@@ -9,7 +9,7 @@ namespace intelometry.Repositories
 {
     public class ElectricityMarketRepository
     {
-        PriceHubRepository  _priceHubRepository;
+        PriceHubRepository _priceHubRepository;
 
 
         public ElectricityMarketRepository(PriceHubRepository priceHubRepository)
@@ -23,8 +23,9 @@ namespace intelometry.Repositories
             List<ElectricityMarket> response = new List<ElectricityMarket>();
 
 
-            string query = "SELECT * FROM electricity_market_table";
-            List<SqlParameter> parameters = new List<SqlParameter>();
+            string query = "SELECT * FROM electricity_market_table " +
+              "JOIN price_hub_table " +
+              "ON electricity_market_table.PriceHub_id = price_hub_table.id ";
 
             if (filters.Length > 0)
             {
@@ -36,26 +37,17 @@ namespace intelometry.Repositories
                 {
                     Filter filter = filters[i];
 
-                    filterText.Add($"@field{i} @comparator{1} @value{i}");
-
-                    SqlParameter fieldParam = new SqlParameter($"field{i}", filter.Field);
-                    parameters.Add(fieldParam);
-
-                    SqlParameter comparatorParam = new SqlParameter($"comparator{i}", filter.Comparator);
-                    parameters.Add(comparatorParam);
-
-                    SqlParameter valueParam = new SqlParameter($"value{i}", filter.Value);
-                    parameters.Add(valueParam);
+                    filterText.Add($"{filter.Field} {filter.Comparator} {filter.Value}");
                 }
 
                 query += string.Join(" AND ", filterText);
             }
 
-            query += "NATURAL JOIN price_hub_table ";
+            query +=  " ORDER BY Tradedate";
 
             Console.WriteLine($"\"{query}\"");
 
-            using (SqlDataReader reader = ConnectionToMSSQL.ExecuteReader(query, parameters.ToArray()))
+            using (SqlDataReader reader = ConnectionToMSSQL.ExecuteReader(query))
             {
 
                 while (reader.Read())
@@ -85,7 +77,7 @@ namespace intelometry.Repositories
         {
             int insertedRows = 0;
 
-            string query = "INSERT INTO electricity_market_data VALUES(" +
+            string query = "INSERT INTO electricity_market_table VALUES(" +
                          "@PriceHub_id," +
                          "@Tradedate," +
                          "@Deliverystartdate," +
@@ -100,6 +92,7 @@ namespace intelometry.Repositories
 
             foreach (ElectricityMarket item in data)
             {
+
                 List<SqlParameter> parameters = new List<SqlParameter>();
 
                 int PriceHub_id = _priceHubRepository.GetOrInsert(item.PriceHubName);
@@ -121,11 +114,19 @@ namespace intelometry.Repositories
 
                 int rowAffected = ConnectionToMSSQL.ExecuteNonQuery(query, parameters.ToArray());
 
+
                 insertedRows += rowAffected;
             }
 
             return insertedRows;
         }
 
+        public int DeleteAll()
+        {
+            string query = "DELETE FROM electricity_market_table"; // Very nice statement :)
+
+
+            return ConnectionToMSSQL.ExecuteNonQuery(query);
+        }
     }
 }

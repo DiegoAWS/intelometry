@@ -69,14 +69,14 @@ namespace intelometry.Repositories
 
             if (filtersPriceHub.Count > 0)
             {
-                string filtersPriceHubString =WriteFilters(filtersPriceHub, true);
+                string filtersPriceHubString = WriteFilters(filtersPriceHub, true);
                 query += $"({filtersPriceHubString})";
             }
             if (filtersDate.Count > 0)
             {
-                string filterDateString= WriteFilters(filtersDate);
+                string filterDateString = WriteFilters(filtersDate);
 
-                if(filtersPriceHub.Count>0)
+                if (filtersPriceHub.Count > 0)
                 {
                     query += $" AND ({filterDateString})";
                 }
@@ -113,50 +113,82 @@ namespace intelometry.Repositories
             return response;
         }
 
+        public List<List<ElectricityMarket>> SplitList(List<ElectricityMarket> locations, int nSize = 100)
+        {
+            var list = new List<List<ElectricityMarket>>();
+
+            for (int i = 0; i < locations.Count; i += nSize)
+            {
+                list.Add(locations.GetRange(i, Math.Min(nSize, locations.Count - i)));
+            }
+
+            return list;
+        }
+
 
         public int InsertMany(List<ElectricityMarket> data)
         {
             int insertedRows = 0;
 
-            string query = "INSERT INTO electricity_market_table VALUES(" +
-                         "@PriceHub_id," +
-                         "@Tradedate," +
-                         "@Deliverystartdate," +
-                         "@Deliveryenddate," +
-                         "@HighpriceMWh," +
-                         "@LowpriceMWh," +
-                         "@WtdavgpriceMWh," +
-                         "@Change," +
-                         "@DailyvolumeMWh" +
-                         ")";
 
 
-            foreach (ElectricityMarket item in data)
+
+            List<List<ElectricityMarket>> splitedData = SplitList(data, 100);
+            foreach (List<ElectricityMarket> chunkData in splitedData)
             {
 
+                string query = "INSERT INTO electricity_market_table VALUES";
+
+                int i = 0;
+
+                List<string> insertStrings = new List<string>();
                 List<SqlParameter> parameters = new List<SqlParameter>();
 
-                int PriceHub_id = _priceHubRepository.GetOrInsert(item.PriceHubName);
+                foreach (ElectricityMarket item in chunkData)
+                {
+
+                    string insertString = "(" +
+                         $"@PriceHub_id{ i }," +
+                         $"@Tradedate{ i }," +
+                         $"@Deliverystartdate{ i }," +
+                         $"@Deliveryenddate{ i }," +
+                         $"@HighpriceMWh{ i }," +
+                         $"@LowpriceMWh{ i }," +
+                         $"@WtdavgpriceMWh{ i }," +
+                         $"@Change{ i }," +
+                         $"@DailyvolumeMWh{ i }" +
+                         ")";
+
+                    insertStrings.Add(insertString);
 
 
-                parameters.Add(new SqlParameter("@PriceHub_id", PriceHub_id));
-
-                //SqlParameter tradedate = new SqlParameter();
-
-                parameters.Add(new SqlParameter("@Tradedate", item.Tradedate));
-                parameters.Add(new SqlParameter("@Deliverystartdate", item.Deliverystartdate));
-                parameters.Add(new SqlParameter("@Deliveryenddate", item.Deliveryenddate));
-                parameters.Add(new SqlParameter("@HighpriceMWh", item.HighpriceMWh));
-                parameters.Add(new SqlParameter("@LowpriceMWh", item.LowpriceMWh));
-                parameters.Add(new SqlParameter("@WtdavgpriceMWh", item.WtdavgpriceMWh));
-                parameters.Add(new SqlParameter("@Change", item.Change));
-                parameters.Add(new SqlParameter("@DailyvolumeMWh", item.DailyvolumeMWh));
+                    int PriceHub_id = _priceHubRepository.GetOrInsert(item.PriceHubName);
 
 
+                    parameters.Add(new SqlParameter($"@PriceHub_id{ i }", PriceHub_id));
+
+
+                    parameters.Add(new SqlParameter($"@Tradedate{ i }", item.Tradedate));
+                    parameters.Add(new SqlParameter($"@Deliverystartdate{ i }", item.Deliverystartdate));
+                    parameters.Add(new SqlParameter($"@Deliveryenddate{ i }", item.Deliveryenddate));
+                    parameters.Add(new SqlParameter($"@HighpriceMWh{ i }", item.HighpriceMWh));
+                    parameters.Add(new SqlParameter($"@LowpriceMWh{ i }", item.LowpriceMWh));
+                    parameters.Add(new SqlParameter($"@WtdavgpriceMWh{ i }", item.WtdavgpriceMWh));
+                    parameters.Add(new SqlParameter($"@Change{ i }", item.Change));
+                    parameters.Add(new SqlParameter($"@DailyvolumeMWh{ i }", item.DailyvolumeMWh));
+
+
+                    i++;
+                }
+
+                query += string.Join(",", insertStrings);
+
+         
                 int rowAffected = _connectionToMSSQL.ExecuteNonQuery(query, parameters.ToArray());
 
 
                 insertedRows += rowAffected;
+
             }
 
             return insertedRows;

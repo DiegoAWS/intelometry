@@ -11,10 +11,19 @@
 }
 
 
+@if (loadingFile)
+{
+    <div class="d-flex justify-content-center align-items-center w-100 h-100">
+        <img src="img/loading.gif" class="card-material rounded-all w-50" />
+    </div>
+}
+else
+{
+    <NoData />
+}
 
 
 
-<NoData />
 
 @code
 {
@@ -23,6 +32,9 @@
 
     [CascadingParameter(Name = "dbFilled")]
     bool dbFilled { get; set; }
+
+    [CascadingParameter(Name = "loadingFile")]
+    bool loadingFile { get; set; }
 
 
     public static Dictionary<string, string> columnNames = new Dictionary<string, string>(){

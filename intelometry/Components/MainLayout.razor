@@ -22,35 +22,37 @@ else
 <div class="page">
     <CascadingValue Name="electricityMarkets" Value="@electricityMarkets">
         <CascadingValue Name="dbFilled" Value="dbFilled">
-            <div class="sidebar">
-                <NavMenu OnNewDataAvailable="@SetElectricityMarkets"
-                         SuccessFileUpload="@SuccessFileUpload"
-                         priceHubs="@priceHubs"
-                         ReadDB="@ReadDB"
-                         loadingFile="@loadingFile" />
-            </div>
+            <CascadingValue Name="loadingFile" Value="@loadingFile">
+                <div class="sidebar">
+                    <NavMenu OnNewDataAvailable="@SetElectricityMarkets"
+                             SuccessFileUpload="@SuccessFileUpload"
+                             priceHubs="@priceHubs"
+                             ReadDB="@ReadDB"
+                             loadingFile="@loadingFile" />
+                </div>
 
-            <div class="main">
-                <div class="top-row px-4">
-                    <div class="">
-                        @if (dbFilled)
-                        {
-    <button class="m-2 btn btn-danger " @onclick="DeleteTable">
-        <span class="oi oi-trash mr-2"></span>
-        Delete Data
-    </button> }
-                        else
-                        {
+                <div class="main">
+                    <div class="top-row px-4">
+                        <div class="">
+                            @if (dbFilled)
+                            {
+            <button class="m-2 btn btn-danger " @onclick="DeleteTable">
+                <span class="oi oi-trash mr-2"></span>
+                Delete Data
+            </button> }
+        else
+        {
 
-    <FileImporter SuccessFileUpload="SuccessFileUpload" Loading="@loadingFile" />}
+            <FileImporter SuccessFileUpload="SuccessFileUpload" Loading="@loadingFile" />}
+                        </div>
+                    </div>
+
+                    <div class="content px-4">
+                        @Body
                     </div>
                 </div>
-
-                <div class="content px-4">
-                    @Body
-                </div>
-            </div>
-        </CascadingValue>
+            </CascadingValue>
+            </CascadingValue>
     </CascadingValue>
 </div>}
 

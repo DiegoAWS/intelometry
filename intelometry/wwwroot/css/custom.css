@@ -42,6 +42,10 @@
     white-space: nowrap;
 }
 
+.rounded-all{
+    border-radius: 50px;
+}
+
 @media (max-width: 640.98px) {
     .show-on-movil {
         display: block;

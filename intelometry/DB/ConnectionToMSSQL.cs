@@ -1,5 +1,6 @@
 ﻿
 
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +31,7 @@ namespace intelometry.DB
                 cmd.CommandType = CommandType.Text;
                 cmd.Parameters.AddRange(parameters);
 
+                
                 conn.Open();
               
                 SqlDataReader reader = cmd.ExecuteReader(CommandBehavior.CloseConnection);

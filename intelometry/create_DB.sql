@@ -1,5 +1,4 @@
-USE master
-GO
+
 IF NOT EXISTS (SELECT [name]
 FROM sys.databases
 WHERE [name] = N'intelometry_test_db')
@@ -37,6 +36,3 @@ CREATE TABLE electricity_market_table
     PRIMARY KEY(id),
 )
 GO
-
-
-

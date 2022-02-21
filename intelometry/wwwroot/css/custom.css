@@ -46,6 +46,12 @@
     border-radius: 50px !important;
 }
 
+.disclaimer{
+    position:absolute;
+    bottom: 10px;
+    left: 260px;
+}
+
 @media (max-width: 640.98px) {
     .show-on-movil {
         display: block;
@@ -57,5 +63,9 @@
 
     .main {
         width: 100% !important;
+    }
+
+    .disclaimer{
+        left: 10px;
     }
 }

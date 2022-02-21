@@ -1,0 +1,88 @@
+﻿@inherits LayoutComponentBase
+@inject DataService dataService
+
+<div class="page">
+    <CascadingValue Name="electricityMarkets" Value="@electricityMarkets">
+        <CascadingValue Name="dbFilled" Value="dbFilled">
+            <div class="sidebar">
+                <NavMenu OnNewDataAvailable="@SetElectricityMarkets"
+                         SuccessFileUpload="@SuccessFileUpload"
+                         priceHubs="@priceHubs"
+                         ReadDB="@ReadDB"
+                         loadingFile="@loadingFile" />
+            </div>
+
+            <div class="main">
+                <div class="top-row px-4">
+                    <div class="">
+                        @if (dbFilled)
+                        {
+                            <button class="m-2 btn btn-danger " @onclick="DeleteTable">
+                                Delete Data
+                            </button>
+                        }
+                        else
+                        {
+
+                            <FileImporter SuccessFileUpload="SuccessFileUpload" Loading="@loadingFile" />
+
+                        }
+                    </div>
+                </div>
+
+                <div class="content px-4">
+                    @Body
+                </div>
+            </div>
+        </CascadingValue>
+    </CascadingValue>
+</div>
+
+@code{
+    List<ElectricityMarket> electricityMarkets = new List<ElectricityMarket>();
+    List<PriceHub> priceHubs = new List<PriceHub>();
+
+    bool dbFilled = false;
+
+    Boolean loadingFile = false;
+
+    protected override async Task OnAfterRenderAsync(Boolean firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            ReadDB();
+        }
+
+    }
+
+    void SetElectricityMarkets(List<ElectricityMarket> newData)
+    {
+        electricityMarkets = newData;
+        StateHasChanged();
+    }
+
+    void ReadDB()
+    {
+        electricityMarkets = dataService.ListAllData();
+        priceHubs = dataService.ListAllPriceHubs();
+        dbFilled = electricityMarkets.Count != 0;
+
+        StateHasChanged();
+    }
+
+    void DeleteTable()
+    {
+        dataService.DeleteAllTheData();
+        ReadDB();
+    }
+
+    private void SuccessFileUpload(Sheet sheet)
+    {
+        loadingFile = true;
+        StateHasChanged();
+        dataService.StoreNewData(sheet.sheet);
+        ReadDB();
+        loadingFile = false;
+    }
+}

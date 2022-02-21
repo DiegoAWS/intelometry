@@ -1,5 +1,7 @@
 ﻿@typeparam TItem
 
+@if(items.Count>0)
+{
 
 <div class="table-responsive">
 
@@ -34,6 +36,11 @@
     </table>
 </div>
 
+}
+else
+{
+ <h5 class="d-block text-center">No data Available</h5>
+}
 
 @code {
 

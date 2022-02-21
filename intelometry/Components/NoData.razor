@@ -1,0 +1,14 @@
+﻿@if (!dbFilled)
+{
+    <div class="card-material">
+
+        <h4>The Database is currently empty, you can download a example data file from here</h4>
+        <a class="btn btn-success mt-4" href="https://intelometry.netlify.app/ice_electric-2021final.xlsx">
+            Get Data sample file
+        </a>
+    </div>
+}
+@code {
+    [CascadingParameter(Name = "dbFilled")]
+    bool dbFilled { get; set; }
+}

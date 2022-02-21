@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using intelometry.Data;
 using intelometry.Services;
 using intelometry.Repositories;
 
@@ -31,7 +30,6 @@ namespace intelometry
 
             services.AddRazorPages();
             services.AddServerSideBlazor();
-            services.AddSingleton<WeatherForecastService>();
             services.AddSingleton<DataService>();
             services.AddSingleton<PriceHubRepository>();
             services.AddSingleton<ElectricityMarketRepository>();

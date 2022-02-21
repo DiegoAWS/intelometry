@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Data;
 using System.Collections.Generic;
 using intelometry.Repositories;
+using System.Web;
 
 namespace intelometry.Services
 {
@@ -23,12 +24,7 @@ namespace intelometry.Services
         {
             List<ElectricityMarket> transformedData = TransformDataList(sheet);
 
-             _electricityMarketRepository.InsertMany(transformedData);
-        }
-
-        public List<ElectricityMarket> ListAllData()
-        {
-            return _electricityMarketRepository.ListAll();
+            _electricityMarketRepository.InsertMany(transformedData);
         }
 
         public List<PriceHub> ListAllPriceHubs()
@@ -36,15 +32,41 @@ namespace intelometry.Services
             return _priceHubRepository.ListAll();
         }
 
-        public List<ElectricityMarket> ListOnePriceHubs(int priceHub_id)
+        public List<ElectricityMarket> ListAllData()
         {
-            if(priceHub_id == -1)
+            return _electricityMarketRepository.ListAll();
+        }
+
+        public List<ElectricityMarket> ListAllData(List<int> priceHub_ids)
+        {
+            return ListAllData(priceHub_ids, "", DateTime.Now, DateTime.Now);
+        }
+
+        public string formatdateToSQL(DateTime date)
+        {
+            return $"'{date.ToString("yyyy-MM-dd")}'";
+        }
+        public List<ElectricityMarket> ListAllData(List<int> priceHub_ids, string filterBy,
+            DateTime timeStart, DateTime timeEnd)
+        {
+            List<Filter> filtersPriceHub = new List<Filter>();
+
+            foreach (var priceHub_id in priceHub_ids)
             {
-                return _electricityMarketRepository.ListAll();
+                filtersPriceHub.Add(new Filter("PriceHub_id", "=", priceHub_id.ToString()));
             }
 
-            Filter filter = new Filter("PriceHub_id", "=", priceHub_id.ToString());
-            return _electricityMarketRepository.ListAll(filter);
+
+            List<Filter> filtersDate = new List<Filter>();
+
+            if (filterBy != "")
+            {
+                filtersDate.Add(new Filter(filterBy, ">=", formatdateToSQL(timeStart)));
+                filtersDate.Add(new Filter(filterBy, "<", formatdateToSQL(timeEnd)));
+            }
+           
+
+            return _electricityMarketRepository.ListAll(filtersPriceHub, filtersDate);
         }
 
         public ElectricityMarket transformData(Datum item)

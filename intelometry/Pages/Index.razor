@@ -1,38 +1,32 @@
 ﻿@page "/"
 
-@inject IJSRuntime _jsRuntime
-
-<div class="d-flex align-items-start">
 
 
-</div>
 
-<div id="container"></div>
-
-@if (electricityMarkets != null && electricityMarkets.Count > 0)
+@if (dbFilled)
 {
-    <div class="card-material mt-5">
-
+    <div class="card-material">
         <GenericDataTable items="electricityMarkets" columnNames="columnNames"></GenericDataTable>
+    </div>
+}
 
-    </div>}
 
 
 
+
+<NoData />
 
 @code
 {
     [CascadingParameter(Name = "electricityMarkets")]
     List<ElectricityMarket> electricityMarkets { get; set; }
 
-    private async Task ShowChart()
-    {
-        await _jsRuntime.InvokeAsync<string>("displayChart", "Hello");
-    }
+    [CascadingParameter(Name = "dbFilled")]
+    bool dbFilled { get; set; }
 
 
     public static Dictionary<string, string> columnNames = new Dictionary<string, string>(){
-    {"Pricehub", "Price Hub"},
+    {"PriceHubName", "Price Hub"},
     {"Tradedate", "Trade Date"},
     {"Deliverystartdate", "Delivery start Date"},
     {"Deliveryenddate", "Delivery end Date"},

@@ -1,0 +1,205 @@
+﻿
+@inject DataService dataService
+@inject ElectricityMarketRepository electricityMarketRepository
+@inject IJSRuntime _jsRuntime
+
+
+<div class="top-row pl-4 navbar navbar-dark logoContainer">
+    <img class="logo" src="img/intelometryLogo.png" alt="Intelomery logo" />
+
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@( collapseNavMenu ? "collapse" : null)">
+    <ul class="nav flex-column">
+        <li class="nav-item px-3" @onclick="ToggleNavMenu">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="oi oi-home" aria-hidden="true"></span> Home
+            </NavLink>
+        </li>
+        <li class="nav-item px-3" @onclick="ToggleNavMenu">
+            <NavLink class="nav-link" href="charts">
+                <span class="oi oi-plus" aria-hidden="true"></span> Charts
+            </NavLink>
+        </li>
+
+        <li class=" px-3">
+
+
+            @if (dbFilled)
+            {
+                <div class="card-material my-3 w-100">
+                    <div class="d-flex flex-wrap align-items-start">
+
+                        <button class="m-2 mb-4 btn btn-danger show-on-movil w-100" @onclick="DeleteTable">
+                            Delete Data
+                        </button>
+
+                        <label class="small font-weight-bold">
+                            Price Hub
+                        </label>
+                        <div class="w-100 border p-1">
+                            @foreach (var priceHub in priceHubs)
+                            {
+                                <div class="form-check">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           checked="@(priceHubsActives.Contains(priceHub.id))"
+                                           @onchange="@( e=> CheckHub(priceHub.id))"
+                                           id="@($"checkbox{priceHub.id}")">
+
+                                    <label class="form-check-label truncate-text"
+                                           for="@($"checkbox{priceHub.id}")"
+                                           title="@priceHub.PriceHubName">
+                                        @priceHub.PriceHubName
+                                    </label>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="form-check small font-weight-bold mt-4">
+                            <input class="form-check-input"
+                                   type="checkbox"
+                                   checked="@filterByTime"
+                                   @onchange="@( e=> CheckFilterByTime())"
+                                   id="filterByTime">
+
+                            <label class="form-check-label"
+                                   for="filterByTime">
+                                Filter By Time
+                            </label>
+                        </div>
+
+                        @if (filterByTime)
+                        {
+
+                            <div class="w-100 ">
+                                <select @bind="filterBy" class="custom-select mt-2">
+                                    <option disabled value="">Select...</option>
+                                    <option value="Tradedate">Trade Date</option>
+                                    <option value="Deliverystartdate">Delivery start Date</option>
+                                    <option value="Deliveryenddate">Delivery end Date</option>
+                                </select>
+
+                                <div class="mt-2 small font-weight-bold">From:</div>
+                                <input type="date"
+                                       class="mt-2 w-100 rounded"
+                                       @bind="timeStart"
+                                       @bind:format="yyyy-MM-dd" />
+
+                                <div class="mt-2 small font-weight-bold">To:</div>
+                                <input type="date"
+                                       class="mt-2 w-100 rounded"
+                                       @bind="timeEnd"
+                                       @bind:format="yyyy-MM-dd" />
+
+                                @if (filterBy != "")
+                                {
+                                    <button class="mt-3 w-100 btn btn-primary" @onclick="FilterRequest">Go</button>
+                                }
+
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="show-on-movil w-100">
+                    <FileImporter SuccessFileUpload="SuccessFileUpload" Loading="@loadingFile" />
+                </div>
+            }
+
+
+        </li>
+
+
+    </ul>
+</div>
+
+@code {
+    [CascadingParameter(Name = "electricityMarkets")]
+    List<ElectricityMarket> electricityMarkets { get; set; }
+
+    [CascadingParameter(Name = "dbFilled")]
+    bool dbFilled { get; set; }
+
+
+    [Parameter] public bool loadingFile { get; set; }
+    [Parameter] public List<PriceHub> priceHubs { get; set; }
+
+    [Parameter] public Action<List<ElectricityMarket>> OnNewDataAvailable { get; set; }
+    [Parameter] public Action<Sheet> SuccessFileUpload { get; set; }
+    [Parameter] public Action ReadDB { get; set; }
+
+
+    List<int> priceHubsActives = new List<int>();
+
+    bool filterByTime = false;
+    string filterBy = "";
+    DateTime timeStart = DateTime.Now;
+    DateTime timeEnd = DateTime.Now;
+
+
+    bool collapseNavMenu = true;
+
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    void OnSuccessFileUpload(Sheet sheet)
+    {
+        SuccessFileUpload.Invoke(sheet);
+
+        ReadDB.Invoke();
+    }
+
+    private void SetElectricityMarkets(List<ElectricityMarket> newData)
+    {
+        OnNewDataAvailable?.Invoke(newData);
+    }
+
+
+    void DeleteTable()
+    {
+        dataService.DeleteAllTheData();
+        ReadDB.Invoke();
+    }
+
+
+    void CheckHub(int id)
+    {
+        if (priceHubsActives.Contains(id))
+        {
+            priceHubsActives.Remove(id);
+        }
+        else
+        {
+            priceHubsActives.Add(id);
+        }
+
+        FilterRequest();
+
+    }
+
+    void CheckFilterByTime()
+    {
+        filterByTime = !filterByTime;
+
+        if (!filterByTime)
+        {
+            filterBy = "";
+            SetElectricityMarkets(dataService.ListAllData(priceHubsActives));
+        }
+    }
+
+    void FilterRequest()
+    {
+        ToggleNavMenu();
+        SetElectricityMarkets(dataService.ListAllData(priceHubsActives, filterBy, timeStart, timeEnd));
+    }
+}

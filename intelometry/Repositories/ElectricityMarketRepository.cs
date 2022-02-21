@@ -17,8 +17,42 @@ namespace intelometry.Repositories
             _priceHubRepository = priceHubRepository;
         }
 
+        static string WriteFilters(List<Filter> filters, bool operatorOr = false)
+        {
+            if (filters.Count > 0)
+            {
 
-        public List<ElectricityMarket> ListAll(params Filter[] filters)
+                List<string> filterText = new List<string>();
+
+                foreach (Filter filter in filters)
+                {
+
+                    filterText.Add($"{filter.Field} {filter.Comparator} {filter.Value}");
+                }
+
+                string op = operatorOr ? "OR" : "AND";
+
+                return string.Join($" {op} ", filterText);
+            }
+
+            return "";
+        }
+
+        public List<ElectricityMarket> ListAll()
+        {
+            List<Filter> emptyFilter = new List<Filter>();
+
+            return ListAll(emptyFilter);
+        }
+
+        public List<ElectricityMarket> ListAll(List<Filter> filtersPriceHub)
+        {
+            List<Filter> emptyFilter = new List<Filter>();
+
+            return ListAll(filtersPriceHub, emptyFilter);
+        }
+
+        public List<ElectricityMarket> ListAll(List<Filter> filtersPriceHub, List<Filter> filtersDate)
         {
             List<ElectricityMarket> response = new List<ElectricityMarket>();
 
@@ -27,25 +61,31 @@ namespace intelometry.Repositories
               "JOIN price_hub_table " +
               "ON electricity_market_table.PriceHub_id = price_hub_table.id ";
 
-            if (filters.Length > 0)
+            if (filtersPriceHub.Count > 0 || filtersDate.Count > 0)
             {
                 query += " WHERE ";
-
-                List<string> filterText = new List<string>();
-
-                for (int i = 0; i < filters.Length; i++)
-                {
-                    Filter filter = filters[i];
-
-                    filterText.Add($"{filter.Field} {filter.Comparator} {filter.Value}");
-                }
-
-                query += string.Join(" AND ", filterText);
             }
 
-            query +=  " ORDER BY Tradedate";
+            if (filtersPriceHub.Count > 0)
+            {
+                string filtersPriceHubString =WriteFilters(filtersPriceHub, true);
+                query += $"({filtersPriceHubString})";
+            }
+            if (filtersDate.Count > 0)
+            {
+                string filterDateString= WriteFilters(filtersDate);
 
-            Console.WriteLine($"\"{query}\"");
+                if(filtersPriceHub.Count>0)
+                {
+                    query += $" AND ({filterDateString})";
+                }
+                else
+                {
+                    query += $"({filterDateString})";
+                }
+            }
+
+            query += " ORDER BY Tradedate";
 
             using (SqlDataReader reader = ConnectionToMSSQL.ExecuteReader(query))
             {
